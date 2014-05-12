@@ -168,12 +168,26 @@ def webhook(request):
             traceback=""
         )
     else:
+        try:
+            evt = stripe.Event.retrieve(data["id"])
+            valid_flag = True
+        except:
+            valid_flag = False
         event = Event.objects.create(
             stripe_id=data["id"],
             kind=data["type"],
             livemode=data["livemode"],
             webhook_message=data
         )
-        event.validate()
+        if valid_flag == True:
+            evt_message = json.loads(json.dumps(
+                evt.to_dict(),
+                sort_keys = True,
+                cls = stripe.StripeObjectEncoder))
+            event.validated_message = evt_message
+            event.valid = True
+        else:
+            event.valid = False
+        event.save()
         event.process()
     return HttpResponse()
