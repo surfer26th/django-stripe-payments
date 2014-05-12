@@ -105,20 +105,6 @@ class Event(StripeObject):
             except Customer.DoesNotExist:
                 pass
 
-    def validate(self):
-        evt = stripe.Event.retrieve(self.stripe_id)
-        self.validated_message = json.loads(
-            json.dumps(
-                evt.to_dict(),
-                sort_keys=True,
-                cls=stripe.StripeObjectEncoder
-            )
-        )
-        if self.webhook_message["data"] == self.validated_message["data"]:
-            self.valid = True
-        else:
-            self.valid = False
-        self.save()
 
     def process(self):
         """
